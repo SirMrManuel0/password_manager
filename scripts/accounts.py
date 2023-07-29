@@ -13,8 +13,6 @@ def password_check(window, username, password):
     
     pass_allowed = False
     
-    print(f"{username}: {lines[0][:-1]}\n{password}: {lines[1][:-1]}")
-    
     for i in range(0, len(lines) - 1):
         if lines[i][:-1] == username and i % 2 == 0 and lines[i + 1][:-1] == password:
             pass_allowed = True
