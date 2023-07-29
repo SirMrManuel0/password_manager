@@ -1,4 +1,5 @@
 from GUI import standards
+from scripts import accounts
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont, QPixmap
@@ -10,13 +11,14 @@ def start(app):
     index_window = standards.manager_window(app)
     index_window.show()
 
-    index_window.setLayout(index_layout())
+    index_window.setLayout(index_layout(index_window))
+    
     
     app.exec_()
 
 
 
-def index_layout():
+def index_layout(window):
     layout = QHBoxLayout()
 
     left_side = QWidget()
@@ -47,6 +49,9 @@ def index_layout():
 
     textfield.setFocus()
     
+    # button click
+    login_button.clicked.connect(lambda: accounts.password_check(window, textfield.text(), passwordfield.text()))
+    
     # Add widgets to the right-side layout
     middle_layout.addWidget(label)
     middle_layout.addWidget(textfield)
@@ -63,3 +68,4 @@ def index_layout():
     layout.addWidget(right_side, 30)
     
     return layout
+
