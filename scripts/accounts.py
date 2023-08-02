@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import *
 import re
 from scripts import en_decrypt
-import secrets
 from GUI import home
+import os
+
 
 def is_valid_email(email):
     email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -12,96 +13,95 @@ def is_valid_email(email):
     else:
         return False
 
-def login(window, email, password):
+
+def login(app, window, email, password):
+
     email_key = ['1', '714', '193', '126', '182', '512', '237', '112', '379', '466', '746', '669', '835', '934', '864', '273', '195', '252', '436',
                  '949', '899', '696', '054', '189', '440', '670', '190', '110', '108', '853', '285', '961', '492', '264', '694', '144', '506', '650',
                  '265', '761', '596', '780', '975', '146', '392', '433', '686', '414', '491', '944', '862', '609', '361', '798', '133', '555', '464',
                  '639', '395', '481', '767', '741', '994', '337', '958', '801', '134', '002', '563', '578', '465', '954', '778', '438','761', '539']
     
+
     if email == "" or password == "":
         QMessageBox.warning(window, "incorrect input", "email and password can not be empty!")
         return
+
     if not is_valid_email(email):
         QMessageBox.warning(window, "not a valid email", "Please make sure to enter a valid email!")
         return
     
-    file = open("data/accs", "r", encoding="utf-8")
-    lines = file.readlines()
-    file.close()
+
+    password_check = en_decrypt.numbers_in_text(en_decrypt.oneHash(password))
+    email = en_decrypt.encrypt(email, email_key)
     
-    email_at = ""
-    for i in range(0, len(lines) - 1):
-        if en_decrypt.decrypt(lines[i][:-1], email_key) == email:
-            email_at = i
-            break
-    if email_at == "":
-        QMessageBox.warning(window, "wrong email", "Please make sure to enter the right email!")
+    
+
+    if not os.path.isdir(f"data/{email}") and not os.path.isfile(f"data/{email}/{email}"):
+        QMessageBox.warning(window, "user not found", "Please make sure to enter the email of an existing account!")
         return
-    next_email_at = ""
-    for i in range(email_at + 1, len(lines)):
-        if is_valid_email(en_decrypt.decrypt(lines[i][:-1], email_key)):
-            next_email_at = i
-            break
-    if next_email_at == "":
-        next_email_at = len(lines)
-    saved_password = ""
-    if email_at + 1 == next_email_at - 1:
-        saved_password = lines[next_email_at - 1][:-1]
-    else:
-        for i in range(email_at + 1, next_email_at - 1):
-            saved_password += lines[i][:-1]
+
+
+    file = open(f"data/{email}/{email}", "r", encoding="utf-8")
+    saved_password = file.read()
     
-    
-    
-    if en_decrypt.numbers_in_text(en_decrypt.master_key_maker(password)) == saved_password:
-        home.start(email, password)
+    if password_check == saved_password:
+        home.start(app, window, email, en_decrypt.numbers_in_text(en_decrypt.twoOneHash(en_decrypt.decrypt(email, email_key), password)))
         return
+
 
     QMessageBox.warning(window, "wrong password or email", "Please make sure to enter the right email and password!")
     return
 
+
 def sign_up(window, email, password, confirm_password):
+
     email_key = ['1', '714', '193', '126', '182', '512', '237', '112', '379', '466', '746', '669', '835', '934', '864', '273', '195', '252', '436',
                  '949', '899', '696', '054', '189', '440', '670', '190', '110', '108', '853', '285', '961', '492', '264', '694', '144', '506', '650',
                  '265', '761', '596', '780', '975', '146', '392', '433', '686', '414', '491', '944', '862', '609', '361', '798', '133', '555', '464',
                  '639', '395', '481', '767', '741', '994', '337', '958', '801', '134', '002', '563', '578', '465', '954', '778', '438','761', '539']
     
+    
+
     if email == "" or password == "" or confirm_password == "":
         QMessageBox.warning(window, "incorrect input", "Fields can not be empty!")
         return
-    if not secrets.compare_digest(password, confirm_password):
+
+    if not password == confirm_password:
         QMessageBox.warning(window, "passwords do not match up", "Please make sure that the password is the same as the confirm!")
         return
+
     if not is_valid_email(email):
         QMessageBox.warning(window, "not a valid email", "Please make sure to enter a valid email!")
         return
     
-    password = en_decrypt.numbers_in_text(en_decrypt.master_key_maker(password))
+
+    confirm_password = ""
+
+    password = en_decrypt.numbers_in_text(en_decrypt.oneHash(password))
     
     already_exists = False
+    email = en_decrypt.encrypt(email, email_key)
+
+
+    if os.path.isdir(f"data/{email}") or os.path.isfile(f"data/{email}/{email}"):
+        already_exists = True
     
-    file = open("data/accs", "r", encoding="utf-8")
-    lines = file.readlines()
-    file.close()
-    for i in range(0, len(lines) - 1):
-        if en_decrypt.decrypt(lines[i][:-1], email_key) == email:
-            already_exists = True
-            break
-    
+
     if already_exists:
         QMessageBox.information(window, "email exists", "This email exists already!")
         return
-    email = en_decrypt.encrypt(email, email_key)
-    with open("data/accs", "a", encoding="utf-8") as f:
-        f.write(f"{email}\n{password}\n")
     
-    
-    QMessageBox.information(window, "Success!", "The account has been created!")
-    
-    
-        
 
+    os.mkdir(f"data/{email}")
+    with open(f"data/{email}/{email}", "w", encoding="utf-8") as f:
+        f.write(password)
     
     
-    
-    
+
+    QMessageBox.information(window, "Success!", "The account has been created!")
+   
+def change():
+    ...       
+   
+   
+   

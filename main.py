@@ -1,11 +1,12 @@
 from GUI import index
+from GUI import home
 import os
 import sys
 from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    index.start(app)
-    sys.exit(0)
+app = QApplication(sys.argv)
+index.start(app)
+#home.start()
+app.exec_()

@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import *
 import os
 
 
-
 def manager_window(app):
     
     window = QWidget()

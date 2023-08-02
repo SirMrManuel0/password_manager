@@ -10,15 +10,11 @@ import os
 def start(app):
     index_window = standards.manager_window(app)
     index_window.show()
-    
-    index_window.setLayout(index_layout(index_window))
-    
-    
-    app.exec_()
+    index_window.setLayout(index_layout(app, index_window))
 
 
 
-def index_layout(window):
+def index_layout(app, window):
     layout = QHBoxLayout()
 
     left_side = QWidget()
@@ -31,7 +27,7 @@ def index_layout(window):
 
     
 
-    middle_widget(middle_layout, window)
+    middle_widget(app, middle_layout, window)
     
     
 
@@ -45,7 +41,7 @@ def index_layout(window):
     return layout
 
 
-def middle_widget(middle_layout, window):
+def middle_widget(app, middle_layout, window):
     while middle_layout.count() > 0:
         item = middle_layout.takeAt(0)
         if item.widget():
@@ -82,7 +78,7 @@ def middle_widget(middle_layout, window):
     email_field.setFocus()
     
     
-    # Add widgets to the right-side layout
+    # Add widgets to the middle-side layout
     middle_layout.addWidget(label)
     middle_layout.addWidget(email_field)
     middle_layout.addWidget(password_field)
@@ -92,14 +88,14 @@ def middle_widget(middle_layout, window):
     middle_layout.addStretch(1)
     
     # button click
-    login_button.clicked.connect(lambda: accounts.login(window, email_field.text(), password_field.text()))
-    signup_button.clicked.connect(lambda: signup_window(middle_layout, window))
+    login_button.clicked.connect(lambda: accounts.login(app, window, email_field.text(), password_field.text()))
+    signup_button.clicked.connect(lambda: signup_window(app, middle_layout, window))
 
 
 
 
 
-def signup_window(middle_layout, window):
+def signup_window(app, middle_layout, window):
     while middle_layout.count() > 0:
         item = middle_layout.takeAt(0)
         if item.widget():
@@ -152,5 +148,5 @@ def signup_window(middle_layout, window):
     middle_layout.addStretch(1)
     
     # button click
-    cancel_button.clicked.connect(lambda: middle_widget(middle_layout, window))
+    cancel_button.clicked.connect(lambda: middle_widget(app, middle_layout, window))
     signup_button.clicked.connect(lambda: accounts.sign_up(window, email_field.text(), password_field.text(), confirm_password_field.text()))
