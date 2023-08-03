@@ -8,5 +8,4 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
 app = QApplication(sys.argv)
 index.start(app)
-#home.start()
 app.exec_()
