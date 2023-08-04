@@ -2,5 +2,4 @@
 My first password manager (i dont know what i am doing)
 
 
-needed:
-pip install pyqt5
+pip install -r requirements.txt
