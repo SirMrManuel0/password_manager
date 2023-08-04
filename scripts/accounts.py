@@ -3,6 +3,8 @@ import re
 from scripts import en_decrypt
 from GUI import home
 import os
+import shutil
+import sys
 
 
 def is_valid_email(email):
@@ -45,7 +47,9 @@ def login(app, window, email, password):
     saved_password = file.read()
     
     if password_check == saved_password:
-        home.start(app, window, email, en_decrypt.numbers_in_text(en_decrypt.twoOneHash(en_decrypt.decrypt(email, email_key), password)))
+        password_check = ""
+        saved_password = ""
+        home.start(app, window, email, en_decrypt.numbers_in_text(en_decrypt.twoOneKey(en_decrypt.decrypt(email, email_key), password)))
         return
 
 
@@ -103,11 +107,65 @@ def sign_up(window, email, password, confirm_password):
 def change():
     ...       
    
-def delete():
-    ...
+def delete(email, window):
+    user_input, has_verified = QInputDialog.getText(window, "verify", "Enter your password:")
+    if not has_verified:
+        return
+    if user_input == "":
+        QMessageBox.warning(window, "invalid input", "Please enter your password!")
+        return
+    file = open(f"data/{email}/{email}", "r", encoding="utf-8")
+    password = file.read()
+    file.close()
+    
+    user_input = en_decrypt.numbers_in_text(en_decrypt.oneHash(user_input))
+    
+    if user_input != password:
+        QMessageBox.warning(window, "invalid input", "Please enter your password!")
+        return
+    password = ""
+    user_input = ""
+    shutil.rmtree(f"data/{email}")
+    QMessageBox.information(window, "Success", "Your account was successfully deleted!")
+    sys.exit()
    
-def delete_sub_acc():
+def delete_sub_acc(app, window, email, key, sub_name):
+    os.remove(f"data/{email}/{sub_name}")
+    QMessageBox.information(window, "Success!", f"{sub_name} was deleted!")
+    home.start(app, window, email, key)
+
+
+def change_sub_acc():
     ...
 
-def ange_sub_acc():
-    ...
+def add_sub_acc(app, window, email, key, sub_name, sub_username, sub_email, sub_password):
+    if sub_name == "" or sub_password == "":
+        QMessageBox.warning(window, "invalid input", "Fields marked with * must not be empty!")
+        return
+    if os.path.isfile(f"data/{email}/{sub_name}"):
+        QMessageBox.warning(window, "invalid input", "The name must be unique!")
+        return
+    
+    email_len = len(sub_email)
+    username_len = len(sub_username)
+    
+    sub_key = en_decrypt.twoOneKey(sub_name, key)
+    
+    if email_len > 0:
+        if not is_valid_email(sub_email):
+            QMessageBox.warning(window, "not a valid email", "Please make sure to enter a valid email!")
+            return
+        sub_email = en_decrypt.encrypt(sub_email, sub_key)
+    if username_len > 0:
+        sub_username = en_decrypt.encrypt(sub_username, sub_key)
+    
+    sub_password = en_decrypt.encrypt(sub_password, sub_key)
+    
+    
+    with open(f"data/{email}/{sub_name}", "w", encoding="utf-8") as file:
+        file.write(f"{email_len}\n{username_len}\n{sub_username}{sub_email}{sub_password}")
+    
+    QMessageBox.information(window, "Success!", f"{sub_name} was created!")
+    
+    home.start(app, window, email, key)
+        

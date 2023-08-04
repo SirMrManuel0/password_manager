@@ -1,21 +1,22 @@
 from GUI import standards
-from scripts import accounts
+from scripts import accounts, en_decrypt
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QFont, QPixmap
 from PyQt5.QtCore import Qt
 import os
+import random
 
 
-def start(app, window, email, hash):
+def start(app, window, email, key):
     window.hide()
     home_window = standards.manager_window(app)
     home_window.show()
-    home_window.setLayout(home_layout(home_window, email))
+    home_window.setLayout(home_layout(home_window, email, app, key))
 
 
 
-def home_layout(window, email):
+def home_layout(window, email, app, key):
     layout = QHBoxLayout()
     
     middle_side = QWidget()
@@ -24,7 +25,7 @@ def home_layout(window, email):
     left_layout = QVBoxLayout()
     left_side = QWidget()
     
-    left_widget(left_layout, window, email, middle_layout)
+    left_widget(left_layout, window, email, middle_layout, key, app=app)
     
     left_side.setLayout(left_layout)
     layout.addWidget(left_side, 80)
@@ -45,7 +46,7 @@ def home_layout(window, email):
     right_layout = QVBoxLayout()
     right_side = QWidget()
     
-    right_widget(right_layout, window)
+    right_widget(right_layout, window, email, middle_layout, key, app)
     
     right_side.setLayout(right_layout)
     layout.addWidget(right_side, 80)
@@ -54,7 +55,7 @@ def home_layout(window, email):
 
 
 
-def left_widget(left_layout, window, email, middle_layout):
+def left_widget(left_layout, window, email, middle_layout, key, app):
     # create widgets
     label = QLabel("ACCOUNTS")
     
@@ -76,7 +77,8 @@ def left_widget(left_layout, window, email, middle_layout):
             continue
         new_button = QPushButton(i)
         new_button.setFont(font)
-        new_button.clicked.connect(lambda ch, acc=new_button.text(): middle_widget(middle_layout, window, True, acc, email))
+        new_button.clicked.connect(lambda ch, acc=new_button.text(): middle_widget(middle_layout, window,
+                                                                                   True, acc, email, key=key, app=app))
         layout.addWidget(new_button)
     
     # scrolling
@@ -87,7 +89,7 @@ def left_widget(left_layout, window, email, middle_layout):
     scroll_area.setWidget(container)
     left_layout.addWidget(scroll_area)
     
-def right_widget(right_layout, window):
+def right_widget(right_layout, window, email, middle_layout, key, app):
     # create widgets
     add_acc_button = QPushButton("add an account")
     change_button = QPushButton("change email or password")
@@ -116,14 +118,15 @@ def right_widget(right_layout, window):
     # button click
     logout_button.clicked.connect(lambda: sys.exit())
     change_button.clicked.connect(lambda: accounts.change())
-    delete_button.clicked.connect(lambda: accounts.delete())
+    delete_button.clicked.connect(lambda: accounts.delete(email, window))
+    add_acc_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key, app=app))
     
     
 
 
 
-def middle_widget(middle_layout, window, called: bool = False, acc: str = None, email: str = None, 
-                  see_email: bool = False, see_password: bool = False):
+def middle_widget(middle_layout, window, called_left: bool = False, acc: str = None, email: str = None, see_email: bool = False,
+                  see_password: bool = False, key: str = None, called_right: bool = False, app = None):
     while middle_layout.count() > 0:
         item = middle_layout.takeAt(0)
         if item.widget():
@@ -135,92 +138,235 @@ def middle_widget(middle_layout, window, called: bool = False, acc: str = None, 
                 if sub_item.widget():
                     sub_item.widget().deleteLater()
     
-    # create widgets
-    label = QLabel("ACCOUNT")
-    delete_button = QPushButton("delete")
-    change_button = QPushButton("change email or password")
-    
-    # change font
     font = QFont("BIZ UDPMincho Medium", 36)
-    label.setFont(font)
-    delete_button.setFont(font)
-    change_button.setFont(font)
     
-    
-    # Add widgets to the middle-side layout
-    middle_layout.setAlignment(Qt.AlignTop)
-    middle_layout.addWidget(label)
-    middle_layout.addWidget(delete_button)
-    middle_layout.addWidget(change_button)
-    
-    if called:
+    if called_left:
+        # create widgets
+        label = QLabel("ACCOUNT")
+        delete_button = QPushButton("delete")
+        change_button = QPushButton("change")
+        
+        # change font
+        label.setFont(font)
+        delete_button.setFont(font)
+        change_button.setFont(font)
+        
+        
+        # Add widgets to the middle-side layout
+        middle_layout.setAlignment(Qt.AlignTop)
+        middle_layout.addWidget(label)
+        middle_layout.addWidget(delete_button)
+        middle_layout.addWidget(change_button)
+
         # create widgets
         name_label = QLabel("name: ")
         name_field = QLineEdit(acc)
         name_field.setReadOnly(True)
         
-        file = open(f"data/{email}/{acc}", "r", encoding="utf-8")
-        lines = file.readlines()
-        
-        sub_email = lines[1][:int(lines[0][:-1])]
-        
-        email_label = QLabel("email: ")
-        if see_email:
-            email_field = QLineEdit(sub_email)
-        else:
-            email_field = QLineEdit("*" * 10)
-        email_field.setReadOnly(True)
-        if see_email:
-            see_email_button = QPushButton("hide email")
-        else:
-            see_email_button = QPushButton("see email")
-        
-        sub_password = lines[1][int(lines[0][:-1]):]
-        
-        password_label = QLabel("password: ")
-        if see_password:
-            password_field = QLineEdit(sub_password)
-        else:
-            password_field = QLineEdit("*" * 10)
-        password_field.setReadOnly(True)
-        if see_password:
-            see_password_button = QPushButton("hide password")
-        else: 
-            see_password_button = QPushButton("see password")
-        
-        
         # change font
         name_label.setFont(font)
         name_field.setFont(font)
-        email_label.setFont(font)
-        email_field.setFont(font)
-        see_email_button.setFont(font)
+        
+        # Add widgets to the middle-side layout
+        middle_layout.addWidget(name_label)
+        middle_layout.addWidget(name_field)
+        
+        file = open(f"data/{email}/{acc}", "r", encoding="utf-8")
+        lines = file.readlines()
+        file.close()
+        email_there = False
+        username_there = False
+        if lines[0] != "0\n" and lines[1] != "0\n":
+            email_there = True
+            username_there = True
+        elif lines[0] == "0\n" and lines[1] != "0\n":
+            username_there = True
+        elif lines[0] != "0\n" and lines[1] == "0\n":
+            email_there = True
+        
+        
+        if username_there and int(lines[1][:-1]) > 0:
+            username_label = QLabel("username: ")
+            sub_username = lines[2][:int(lines[1][:-1])]
+            sub_username = en_decrypt.decrypt(sub_username, en_decrypt.twoOneKey(acc, key))
+            username_field = QLineEdit(sub_username)
+            username_field.setReadOnly(True)
+            
+            # change font
+            username_label.setFont(font)
+            username_field.setFont(font)
+            
+            # Add widgets to the middle-side layout
+            middle_layout.addWidget(username_label)
+            middle_layout.addWidget(username_field)
+        
+            
+        if email_there and int(lines[0][:-1]) > 0:
+            email_label = QLabel("email: ")
+            if see_email:
+                sub_email = lines[2][int(lines[1][:-1]):int(lines[1][:-1]) + int(lines[0][:-1])]
+                sub_email = en_decrypt.decrypt(sub_email, en_decrypt.twoOneKey(acc, key))
+                email_field = QLineEdit(sub_email)
+                see_email_button = QPushButton("hide email")
+            else:
+                email_field = QLineEdit("*" * 10)
+                see_email_button = QPushButton("see email")
+            
+            email_field.setReadOnly(True)
+            
+            # change font
+            email_label.setFont(font)
+            email_field.setFont(font)
+            see_email_button.setFont(font)
+            
+            # Add widgets to the middle-side layout
+            middle_layout.addWidget(email_label)
+            middle_layout.addWidget(email_field)
+            middle_layout.addWidget(see_email_button)
+            
+            # button click
+            if see_email:
+                see_email_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email,
+                                                                       see_password=see_password, key=key, app=app))
+            else:
+                see_email_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, True,
+                                                                       see_password, key=key, app=app))
+            
+        
+        password_label = QLabel("password: ")
+        
+        if see_password:
+            sub_password = lines[2][int(lines[1][:-1]) + int(lines[0][:-1]):]
+            sub_password = en_decrypt.decrypt(sub_password, en_decrypt.twoOneKey(acc, key))
+            password_field = QLineEdit(sub_password)
+            see_password_button = QPushButton("hide password")
+        else:
+            password_field = QLineEdit("*" * 10)
+            see_password_button = QPushButton("see password")
+        
+        password_field.setReadOnly(True)
+        
+        
+        # change font
         password_field.setFont(font)
         password_label.setFont(font)
         see_password_button.setFont(font)
         
         
         # Add widgets to the middle-side layout
-        middle_layout.addWidget(name_label)
-        middle_layout.addWidget(name_field)
-        middle_layout.addWidget(email_label)
-        middle_layout.addWidget(email_field)
-        middle_layout.addWidget(see_email_button)
         middle_layout.addWidget(password_label)
         middle_layout.addWidget(password_field)
         middle_layout.addWidget(see_password_button)
         
         
         # button click
-        delete_button.clicked.connect(lambda: accounts.delete_sub_acc())
+        delete_button.clicked.connect(lambda: accounts.delete_sub_acc(app, window, email, key, acc))
         change_button.clicked.connect(lambda: accounts.change_sub_acc())
-        if see_email:
-            see_email_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email))
-        else:
-            see_email_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, True))
         if see_password:
-            see_password_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email))
+            see_password_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, see_email,
+                                                                      key=key, app=app))
         else:
-            see_password_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, see_password=True))
+            see_password_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, see_email,
+                                                                      True, key=key, app=app))
+    
+    if called_right:
+        # create widgets
+        label = QLabel("add an account")
+        back_button = QPushButton("back")
+        exp_label = QLabel("\n* must be filled\nname must be unique and can not be the same as one of your other accounts\n")
+        name_label = QLabel("name *: ")
+        name_field = QLineEdit()
+        username_label = QLabel("username: ")
+        username_field = QLineEdit()
+        email_label = QLabel("email :")
+        email_field = QLineEdit()
+        password_label = QLabel("password *: ")
+        password_field = QLineEdit()
+        password_gen_label = QLabel("\nsecure password generator: ")
+        password_length_label = QLabel("password length: ")
+        password_length_field = QLineEdit("10") # default length 10
+        checkbox_lower = QCheckBox("include lowercase letters (a-z)")
+        checkbox_upper = QCheckBox("include uppercase letters (A-Z)")
+        checkbox_numbers = QCheckBox("include numbers (0-9)")
+        checkbox_special = QCheckBox("include special characters")
+        password_specialcharacter_field = QLineEdit("[!@#$%^&*()]")
+        password_gen_button = QPushButton("generate a new password")
+        add_sub_acc_button = QPushButton("create account")
         
+        # change font
+        label.setFont(font)
+        back_button.setFont(font)
+        exp_label.setFont(font)
+        name_label.setFont(font)
+        name_field.setFont(font)
+        username_label.setFont(font)
+        username_field.setFont(font)
+        email_label.setFont(font)
+        email_field.setFont(font)
+        password_label.setFont(font)
+        password_field.setFont(font)
+        password_gen_label.setFont(font)
+        password_length_label.setFont(font)
+        password_length_field.setFont(font)
+        password_gen_button.setFont(font)
+        checkbox_lower.setFont(font)
+        checkbox_upper.setFont(font)
+        checkbox_numbers.setFont(font)
+        checkbox_special.setFont(font)
+        password_specialcharacter_field.setFont(font)
+        add_sub_acc_button.setFont(font)
         
+        # Add widgets to the middle-side layout
+        middle_layout.setAlignment(Qt.AlignTop)
+        middle_layout.addWidget(label)
+        middle_layout.addWidget(back_button)
+        middle_layout.addWidget(exp_label)
+        middle_layout.addWidget(name_label)
+        middle_layout.addWidget(name_field)
+        middle_layout.addWidget(username_label)
+        middle_layout.addWidget(username_field)
+        middle_layout.addWidget(email_label)
+        middle_layout.addWidget(email_field)
+        middle_layout.addWidget(password_label)
+        middle_layout.addWidget(password_field)
+        middle_layout.addWidget(password_gen_label)
+        middle_layout.addWidget(password_length_label)
+        middle_layout.addWidget(password_length_field)
+        middle_layout.addWidget(checkbox_lower)
+        middle_layout.addWidget(checkbox_upper)
+        middle_layout.addWidget(checkbox_numbers)
+        middle_layout.addWidget(checkbox_special)
+        middle_layout.addWidget(password_specialcharacter_field)
+        middle_layout.addWidget(password_gen_button)
+        middle_layout.addStretch(1)
+        middle_layout.addWidget(add_sub_acc_button)
+        middle_layout.addStretch(2)
+        
+        # button click
+        back_button.clicked.connect(lambda: middle_widget(middle_layout, window))
+        password_gen_button.clicked.connect( lambda: password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
+                                                                  password_length_field, password_field, password_specialcharacter_field))
+        add_sub_acc_button.clicked.connect(lambda: accounts.add_sub_acc(app, window, email, key, name_field.text(), username_field.text(),
+                                                                        email_field.text(), password_field.text()))
+      
+
+def password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
+                 password_length_field, password_field, password_specialcharacter_field):
+    characters = ""
+
+    if checkbox_lower.isChecked():
+        characters += "abcdefghijklmnopqrstuvwxyz"
+    if checkbox_upper.isChecked():
+        characters += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    if checkbox_numbers.isChecked():
+        characters += "0123456789"
+    if checkbox_special.isChecked():
+        characters += password_specialcharacter_field.text()
+
+    password_length = int(password_length_field.text())
+    
+    try:
+        generated_password = ''.join(random.choice(characters) for i in range(password_length))
+        password_field.setText(generated_password)
+    except IndexError:
+        QMessageBox.warning(window, "no characters", "Please check at least one checkbox, so that there can be characters in your password!")

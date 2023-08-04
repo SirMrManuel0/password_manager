@@ -32,7 +32,7 @@ def oneHash(password):
     key = temp
     temp2 = ""
     count = 0
-
+    
     for i in temp:
         temp2 += i + password[count::2]
         count += 1
@@ -66,6 +66,7 @@ def oneHash(password):
     for i in temp:
         if i == "":
             continue
+
         key.append(i)
     
     return key
@@ -110,7 +111,9 @@ def decrypt(text, key):
     arr_text = numbers_in_text(arr_text)
     return str(arr_text)
 
-def twoOneHash(first, second):
+
+def twoOneKey(first, second):
+
     first = text_in_numbers(first)
     first = "".join(i for i in first)
     
