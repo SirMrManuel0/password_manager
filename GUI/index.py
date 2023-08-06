@@ -59,7 +59,7 @@ def middle_widget(app, middle_layout, window):
     label = QLabel("LOGIN")
     email_field = QLineEdit()
     password_field = QLineEdit()
-    password_field.setEchoMode(QLineEdit.PasswordEchoOnEdit)
+    password_field.setEchoMode(QLineEdit.Password)
     login_button = QPushButton("login")
     signup_button = QPushButton("sign up")
     

@@ -117,16 +117,19 @@ def right_widget(right_layout, window, email, middle_layout, key, app):
     
     # button click
     logout_button.clicked.connect(lambda: sys.exit())
-    change_button.clicked.connect(lambda: accounts.change())
+    change_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key,
+                                                         app=app, is_change=True))
     delete_button.clicked.connect(lambda: accounts.delete(email, window))
-    add_acc_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key, app=app))
+    add_acc_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key,
+                                                         app=app, is_sub_add=True))
     
     
 
 
 
 def middle_widget(middle_layout, window, called_left: bool = False, acc: str = None, email: str = None, see_email: bool = False,
-                  see_password: bool = False, key: str = None, called_right: bool = False, app = None):
+                  see_password: bool = False, key: str = None, called_right: bool = False, app = None, is_sub_add: bool = False,
+                  is_sub_change: bool = False, is_change: bool = False):
     while middle_layout.count() > 0:
         item = middle_layout.takeAt(0)
         if item.widget():
@@ -261,7 +264,8 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         
         # button click
         delete_button.clicked.connect(lambda: accounts.delete_sub_acc(app, window, email, key, acc))
-        change_button.clicked.connect(lambda: accounts.change_sub_acc())
+        change_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key, 
+                                                            app=app, is_sub_change=True, acc=acc))
         if see_password:
             see_password_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email, see_email,
                                                                       key=key, app=app))
@@ -271,17 +275,47 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
     
     if called_right:
         # create widgets
-        label = QLabel("add an account")
+        if is_sub_add:
+            label = QLabel("add an account")
+        elif is_sub_change:
+            label = QLabel("change an account")
+        elif is_change:
+            label = QLabel("change email or password")
         back_button = QPushButton("back")
-        exp_label = QLabel("\n* must be filled\nname must be unique and can not be the same as one of your other accounts\n")
-        name_label = QLabel("name *: ")
-        name_field = QLineEdit()
-        username_label = QLabel("username: ")
-        username_field = QLineEdit()
-        email_label = QLabel("email :")
-        email_field = QLineEdit()
+        if is_change:
+            exp_label = QLabel("\n* must be filled\nIf password is **********, it will not be changed.\n")
+            email_label = QLabel("email *:")
+        else:
+            exp_label = QLabel("\n* must be filled\nname must be unique and can not be the same as one of your other accounts\n")
+            name_label = QLabel("name *: ")
+            username_label = QLabel("username: ")
+            email_label = QLabel("email :")
         password_label = QLabel("password *: ")
-        password_field = QLineEdit()
+        if is_sub_change:
+            file = open(f"data/{email}/{acc}", "r", encoding="utf-8")
+            lines = file.readlines()
+            file.close()
+            sub_email = lines[2][int(lines[1][:-1]):int(lines[1][:-1]) + int(lines[0][:-1])]
+            sub_email = en_decrypt.decrypt(sub_email, en_decrypt.twoOneKey(acc, key))
+            sub_username = lines[2][:int(lines[1][:-1])]
+            sub_username = en_decrypt.decrypt(sub_username, en_decrypt.twoOneKey(acc, key))
+            sub_password = lines[2][int(lines[1][:-1]) + int(lines[0][:-1]):]
+            sub_password = en_decrypt.decrypt(sub_password, en_decrypt.twoOneKey(acc, key))
+            name_field = QLineEdit(acc)
+            username_field = QLineEdit(sub_username)
+            email_field = QLineEdit(sub_email)
+            password_field = QLineEdit(sub_password)
+        elif is_sub_add:
+            name_field = QLineEdit()
+            username_field = QLineEdit()
+            email_field = QLineEdit()
+            password_field = QLineEdit()
+        elif is_change:
+            file = open(f"data/{email}/{email}", "r", encoding="utf-8")
+            lines = file.read()
+            file.close()
+            email_field = QLineEdit(en_decrypt.decrypt(email, accounts.email_key))
+            password_field = QLineEdit("*" * 10)
         password_gen_label = QLabel("\nsecure password generator: ")
         password_length_label = QLabel("password length: ")
         password_length_field = QLineEdit("10") # default length 10
@@ -291,16 +325,22 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         checkbox_special = QCheckBox("include special characters")
         password_specialcharacter_field = QLineEdit("[!@#$%^&*()]")
         password_gen_button = QPushButton("generate a new password")
-        add_sub_acc_button = QPushButton("create account")
+        if is_sub_add:
+            sub_acc_button = QPushButton("create account")
+        elif is_sub_change:
+            sub_acc_button = QPushButton("change account")
+        elif is_change:
+            change_acc_button = QPushButton("change email and password")
         
         # change font
         label.setFont(font)
         back_button.setFont(font)
         exp_label.setFont(font)
-        name_label.setFont(font)
-        name_field.setFont(font)
-        username_label.setFont(font)
-        username_field.setFont(font)
+        if not is_change:
+            name_label.setFont(font)
+            name_field.setFont(font)
+            username_label.setFont(font)
+            username_field.setFont(font)
         email_label.setFont(font)
         email_field.setFont(font)
         password_label.setFont(font)
@@ -314,17 +354,21 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         checkbox_numbers.setFont(font)
         checkbox_special.setFont(font)
         password_specialcharacter_field.setFont(font)
-        add_sub_acc_button.setFont(font)
+        if not is_change:
+            sub_acc_button.setFont(font)
+        else:
+            change_acc_button.setFont(font)
         
         # Add widgets to the middle-side layout
         middle_layout.setAlignment(Qt.AlignTop)
         middle_layout.addWidget(label)
         middle_layout.addWidget(back_button)
         middle_layout.addWidget(exp_label)
-        middle_layout.addWidget(name_label)
-        middle_layout.addWidget(name_field)
-        middle_layout.addWidget(username_label)
-        middle_layout.addWidget(username_field)
+        if not is_change:
+            middle_layout.addWidget(name_label)
+            middle_layout.addWidget(name_field)
+            middle_layout.addWidget(username_label)
+            middle_layout.addWidget(username_field)
         middle_layout.addWidget(email_label)
         middle_layout.addWidget(email_field)
         middle_layout.addWidget(password_label)
@@ -339,15 +383,25 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         middle_layout.addWidget(password_specialcharacter_field)
         middle_layout.addWidget(password_gen_button)
         middle_layout.addStretch(1)
-        middle_layout.addWidget(add_sub_acc_button)
+        if not is_change:
+            middle_layout.addWidget(sub_acc_button)
+        else:
+            middle_layout.addWidget(change_acc_button)
         middle_layout.addStretch(2)
         
         # button click
         back_button.clicked.connect(lambda: middle_widget(middle_layout, window))
         password_gen_button.clicked.connect( lambda: password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
-                                                                  password_length_field, password_field, password_specialcharacter_field))
-        add_sub_acc_button.clicked.connect(lambda: accounts.add_sub_acc(app, window, email, key, name_field.text(), username_field.text(),
-                                                                        email_field.text(), password_field.text()))
+                                                                password_length_field, password_field, password_specialcharacter_field))
+        if is_sub_add:
+            sub_acc_button.clicked.connect(lambda: accounts.actions_sub_acc(app, window, email, key, name_field.text(), username_field.text(),
+                                                                            email_field.text(), password_field.text()))
+        elif is_sub_change:
+            sub_acc_button.clicked.connect(lambda: accounts.actions_sub_acc(app, window, email, key, name_field.text(), username_field.text(),
+                                                                                email_field.text(), password_field.text(), acc))
+        elif is_change:
+            change_acc_button.clicked.connect(lambda: accounts.change(app, window, email, key, email_field.text(), password_field.text()))
+            
       
 
 def password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
@@ -362,8 +416,10 @@ def password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, check
         characters += "0123456789"
     if checkbox_special.isChecked():
         characters += password_specialcharacter_field.text()
-
-    password_length = int(password_length_field.text())
+    try:
+        password_length = int(password_length_field.text())
+    except:
+        password_length = 10
     
     try:
         generated_password = ''.join(random.choice(characters) for i in range(password_length))

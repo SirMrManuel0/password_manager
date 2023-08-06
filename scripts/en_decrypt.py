@@ -113,13 +113,17 @@ def decrypt(text, key):
 
 
 def twoOneKey(first, second):
-
+    
+    if len(first) <= 4:
+        first += "laenger"
+    
     first = text_in_numbers(first)
     first = "".join(i for i in first)
     
     second = text_in_numbers(second)
     second = "".join(i for i in second)
-
+    
+    
     temp = ""
     count = 0
 
@@ -131,7 +135,8 @@ def twoOneKey(first, second):
 
     temp2 = temp[0: 18]
     temp = temp[18:]
-
+    
+    
     temp = int(temp) + int(temp2)
     temp = str(temp)
 
