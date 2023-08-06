@@ -5,7 +5,8 @@ import sys
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout
 
-
+if not os.path.isdir("data"):
+    os.mkdir("data")
 app = QApplication(sys.argv)
 index.start(app)
 app.exec_()
