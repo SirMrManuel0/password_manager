@@ -1,3 +1,4 @@
+# Import necessary modules
 from GUI import standards
 from scripts import accounts, en_decrypt
 import sys
@@ -7,16 +8,47 @@ from PyQt5.QtCore import Qt
 import os
 import random
 
-
+# Define a function to start the application
 def start(app, window, email, key):
+    """
+    description:
+        Hides the current window and shows the manager_window.
+
+    args:
+        - app: QApplication
+        - window: QWidget
+        - email: str
+        - key: str
+
+    return:
+        None
+    """
+    # Hide the current window
     window.hide()
+    
+    # Create a manager window
     home_window = standards.manager_window(app)
     home_window.show()
+    
+    # Set the layout for the manager window
     home_window.setLayout(home_layout(home_window, email, app, key))
 
 
-
+# Define the layout for the manager window
 def home_layout(window, email, app, key):
+    """
+    description:
+        Creates the layout for the home window.
+
+    args:
+        - window: QWidget
+        - email: str
+        - app: QApplication
+        - key: str
+
+    return:
+        - layout: QHBoxLayout
+    """
     layout = QHBoxLayout()
     
     middle_side = QWidget()
@@ -25,20 +57,13 @@ def home_layout(window, email, app, key):
     left_layout = QVBoxLayout()
     left_side = QWidget()
     
+    # Set the left-side widgets and layout
     left_widget(left_layout, window, email, middle_layout, key, app=app)
     
     left_side.setLayout(left_layout)
     layout.addWidget(left_side, 80)
-    
-    
-
-    
-
-    
 
     middle_widget(middle_layout, window)
-    
-    
 
     middle_side.setLayout(middle_layout)
     layout.addWidget(middle_side, 180)
@@ -46,6 +71,7 @@ def home_layout(window, email, app, key):
     right_layout = QVBoxLayout()
     right_side = QWidget()
     
+    # Set the right-side widgets and layout
     right_widget(right_layout, window, email, middle_layout, key, app)
     
     right_side.setLayout(right_layout)
@@ -54,20 +80,35 @@ def home_layout(window, email, app, key):
     return layout
 
 
-
+# Define the left-side widget and layout
 def left_widget(left_layout, window, email, middle_layout, key, app):
-    # create widgets
+    """
+    description:
+        Populates the left side of the window with account names and handles their selection.
+
+    args:
+        - left_layout: QVBoxLayout
+        - window: QWidget
+        - email: str
+        - middle_layout: QVBoxLayout
+        - key: str
+        - app: QApplication
+
+    return:
+        None
+    """
+    # Create widgets
     label = QLabel("ACCOUNTS")
     
     
-    # change font
+    # Change font
     font = QFont("BIZ UDPMincho Medium", 36)
     label.setFont(font)
  
-    # Add widgets to the left-side layout
+    # Add the label widget to the left-side layout
     left_layout.addWidget(label)
     
-    # to have all accounts appear on the left side
+    # Display all accounts on the left side
     files = os.listdir(f"data/{email}")
     layout = QVBoxLayout()
     layout.setAlignment(Qt.AlignTop)
@@ -77,28 +118,44 @@ def left_widget(left_layout, window, email, middle_layout, key, app):
             continue
         new_button = QPushButton(i)
         new_button.setFont(font)
+        
+        # Connect button click to display account details
         new_button.clicked.connect(lambda ch, acc=new_button.text(): middle_widget(middle_layout, window,
                                                                                    True, acc, email, key=key, app=app))
         layout.addWidget(new_button)
     
-    # scrolling
+    # Set up scrolling for the accounts list
     scroll_area = QScrollArea()
     scroll_area.setWidgetResizable(True)
     container = QWidget()
     container.setLayout(layout)
     scroll_area.setWidget(container)
     left_layout.addWidget(scroll_area)
-    
+
+# Define the right-side widget and layout
 def right_widget(right_layout, window, email, middle_layout, key, app):
-    # create widgets
+    """
+    description:
+        Populates the right side of the window with buttons for various actions.
+
+    args:
+        - right_layout: QVBoxLayout
+        - window: QWidget
+        - email: str
+        - middle_layout: QVBoxLayout
+        - key: str
+        - app: QApplication
+
+    return:
+        None
+    """
+    # Create widgets
     add_acc_button = QPushButton("add an account")
     change_button = QPushButton("change email or password")
     delete_button = QPushButton("delete your account")
     logout_button = QPushButton("logout & close")
     
-    
-    
-    # change font
+    # Change font
     font = QFont("BIZ UDPMincho Medium", 36)
     add_acc_button.setFont(font)
     change_button.setFont(font)
@@ -115,7 +172,7 @@ def right_widget(right_layout, window, email, middle_layout, key, app):
     right_layout.addWidget(change_button)
     right_layout.addWidget(logout_button)
     
-    # button click
+    # Button click events
     logout_button.clicked.connect(lambda: sys.exit())
     change_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key,
                                                          app=app, is_change=True))
@@ -126,10 +183,32 @@ def right_widget(right_layout, window, email, middle_layout, key, app):
     
 
 
-
+# Define the middle widget and layout
 def middle_widget(middle_layout, window, called_left: bool = False, acc: str = None, email: str = None, see_email: bool = False,
                   see_password: bool = False, key: str = None, called_right: bool = False, app = None, is_sub_add: bool = False,
                   is_sub_change: bool = False, is_change: bool = False):
+    """
+    description:
+        Populates the middle section of the window based on various conditions and actions.
+
+    args:
+        - middle_layout: QVBoxLayout
+        - window: QWidget
+        - called_left: bool = False
+        - acc: str = none
+        - email: str = None
+        - see_email: bool = False
+        - see_password: bool = False
+        - key: str = None
+        - called_right: bool = False
+        - app: QApplication = None
+        - is_sub_add: bool = False
+        - is_sub_change: bool = False
+        - is_change: bool = False
+
+    return:
+        None
+    """
     while middle_layout.count() > 0:
         item = middle_layout.takeAt(0)
         if item.widget():
@@ -144,12 +223,12 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
     font = QFont("BIZ UDPMincho Medium", 36)
     
     if called_left:
-        # create widgets
+        # Create widgets for displaying account details
         label = QLabel("ACCOUNT")
         delete_button = QPushButton("delete")
         change_button = QPushButton("change")
         
-        # change font
+        # Change font
         label.setFont(font)
         delete_button.setFont(font)
         change_button.setFont(font)
@@ -161,12 +240,12 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         middle_layout.addWidget(delete_button)
         middle_layout.addWidget(change_button)
 
-        # create widgets
+        # Create widgets to display account information
         name_label = QLabel("name: ")
         name_field = QLineEdit(acc)
         name_field.setReadOnly(True)
         
-        # change font
+        # Change font
         name_label.setFont(font)
         name_field.setFont(font)
         
@@ -195,7 +274,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
             username_field = QLineEdit(sub_username)
             username_field.setReadOnly(True)
             
-            # change font
+            # Change font
             username_label.setFont(font)
             username_field.setFont(font)
             
@@ -217,7 +296,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
             
             email_field.setReadOnly(True)
             
-            # change font
+            # Change font
             email_label.setFont(font)
             email_field.setFont(font)
             see_email_button.setFont(font)
@@ -227,7 +306,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
             middle_layout.addWidget(email_field)
             middle_layout.addWidget(see_email_button)
             
-            # button click
+            # Button click events for showing/hiding email
             if see_email:
                 see_email_button.clicked.connect(lambda: middle_widget(middle_layout, window, True, acc, email,
                                                                        see_password=see_password, key=key, app=app))
@@ -250,7 +329,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         password_field.setReadOnly(True)
         
         
-        # change font
+        # Change font
         password_field.setFont(font)
         password_label.setFont(font)
         see_password_button.setFont(font)
@@ -262,7 +341,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         middle_layout.addWidget(see_password_button)
         
         
-        # button click
+        # Button click events for showing/hiding password
         delete_button.clicked.connect(lambda: accounts.delete_sub_acc(app, window, email, key, acc))
         change_button.clicked.connect(lambda: middle_widget(middle_layout, window, called_right=True, email=email, key=key, 
                                                             app=app, is_sub_change=True, acc=acc))
@@ -274,7 +353,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
                                                                       True, key=key, app=app))
     
     if called_right:
-        # create widgets
+        # Create widgets for different actions in the right-side section
         if is_sub_add:
             label = QLabel("add an account")
         elif is_sub_change:
@@ -332,7 +411,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         elif is_change:
             change_acc_button = QPushButton("change email and password")
         
-        # change font
+        # Change font for the right-side widgets
         label.setFont(font)
         back_button.setFont(font)
         exp_label.setFont(font)
@@ -359,7 +438,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
         else:
             change_acc_button.setFont(font)
         
-        # Add widgets to the middle-side layout
+        # Add widgets to the right-side layout
         middle_layout.setAlignment(Qt.AlignTop)
         middle_layout.addWidget(label)
         middle_layout.addWidget(back_button)
@@ -389,7 +468,7 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
             middle_layout.addWidget(change_acc_button)
         middle_layout.addStretch(2)
         
-        # button click
+        # Button click events for right-side actions
         back_button.clicked.connect(lambda: middle_widget(middle_layout, window))
         password_gen_button.clicked.connect( lambda: password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
                                                                 password_length_field, password_field, password_specialcharacter_field))
@@ -403,9 +482,26 @@ def middle_widget(middle_layout, window, called_left: bool = False, acc: str = N
             change_acc_button.clicked.connect(lambda: accounts.change(app, window, email, key, email_field.text(), password_field.text()))
             
       
-
+# Function to generate a random password
 def password_gen(window, checkbox_lower, checkbox_upper, checkbox_numbers, checkbox_special,
                  password_length_field, password_field, password_specialcharacter_field):
+    """
+    description:
+        Generates a random password based on user-selected options.
+
+    args:
+        - window: QWidget
+        - checkbox_lower: QCheckBox
+        - checkbox_upper: QCheckBox
+        - checkbox_numbers: QCheckBox
+        - checkbox_special: QCheckBox
+        - password_length_field: QLineEdit
+        - password_field: QLineEdit
+        - password_specialcharacter_field: QLineEdit
+
+    return:
+        None
+    """
     characters = ""
 
     if checkbox_lower.isChecked():

@@ -3,16 +3,26 @@ from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import *
 import os
 
-
+# Function to create the main window
 def manager_window(app):
+    """
+    Creates and returns the main window for the password manager application.
+    
+    Args:
+        app (QApplication): The QApplication instance for the application.
+
+    Returns:
+        QWidget: The main application window.
+    """
     
     window = QWidget()
     window.setWindowTitle("Password Manager")
     
+    # Set the window icon
     window_icon = QIcon("img/icon_blue.png")
     window.setWindowIcon(window_icon)
     
-    
+    # Apply the theme to the window
     apply_theme(app)
     
     # Get the user's screen dimensions
@@ -40,8 +50,14 @@ def manager_window(app):
 
 
 
-
+# Function to apply the color theme to the application
 def apply_theme(app):
+    """
+    Applies a custom color theme to the application using a style sheet.
+    
+    Args:
+        app (QApplication): The QApplication instance for the application.
+    """
     # Define your color theme here
     button_color = "#746426"
     accent_color = "#E15722"
