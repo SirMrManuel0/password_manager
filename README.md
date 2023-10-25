@@ -35,7 +35,7 @@ The Password Manager is a Python-based desktop application that allows users to 
     python main.py
     ```
 
-## Installation
+## How to Use
 
 - **Login**: If you have an existing account, enter your email and password, then click the "Log In" button.
 - **Sign Up**: If you are a new user, click "Sign Up" and provide a valid email and password.
